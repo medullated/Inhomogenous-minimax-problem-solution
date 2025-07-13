@@ -1,0 +1,338 @@
+
+body { 
+    font-family:"Roboto Flex", sans-serif; padding: 20px; 
+    --lime: #8fff64;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    text-align: center;
+    
+}
+h1 {
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 700; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+}
+
+button {
+    border: solid 0.5 rem;
+    border-style: solid;
+    border-radius: 3px;
+    font-style: inherit;
+    font-family: inherit;
+    height: 30px;
+    width: 150px;
+    text-align: center;
+    background-color: var(--lime);
+    color: var(--black);
+    border-color: var(--black);
+    box-shadow: 
+        0.3rem 0.3rem 0 -0.25rem var(--white),
+        0.3rem 0.3rem 0 0 var(--white);
+
+    transition: transform 50ms,
+                box-shadow 50ms;
+    transform: none;
+    font-weight: bolder;
+    margin-left: 0.2rem;
+    margin-right: 0.2rem;
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 700; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+}
+button:hover {
+    scale: 1.03;
+    color: var(--red);
+    
+
+}
+button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px;
+    
+}
+input { 
+    margin: 5px 0;
+    border-style: solid;
+    border: solid;
+    border-width: 2px;
+    border-radius: 3px;
+    width: 3rem;
+    text-align: center;
+    overflow-x: hidden;
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 700; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+    
+    
+}
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number] ::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.main_container {
+    display: flex;
+    flex-direction: row;
+    gap: 5rem;
+    justify-content: center;
+    
+}
+.form-columns {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2rem;
+
+}
+
+.labels-column, .inputs-column {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    font-family: "Roboto Mono", monospace;
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 400; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+    
+}
+.labels-column {
+    margin: 5px 0;
+    gap: 12px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.log { 
+    border: none; 
+    padding: 10px; 
+    overflow-y: auto; 
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 700; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+    width: 250px;
+    
+}
+.success { color: green; }
+.error { color: red; }
+.results { 
+    border: 1px solid;
+    border-color: var(--lime);
+    padding: 15px;
+    background-color: transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 500px;
+}
+.results h2 {
+    margin-top: 0;
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 700; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+}
+.results-content {
+    justify-content: center;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid #eee;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: smaller;
+    max-width: 500px;
+}
+.tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-family: "Roboto Flex", sans-serif;
+    font-weight: 700; /* Жирность шрифта */
+    font-variation-settings: 
+        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
+    /* Другие параметры по желанию */
+}
+.tab {
+    padding: 0px 20px;
+    cursor: pointer;
+    border: 1px solid #000000;
+    background: #ffffff;
+    margin-right: 0px;
+    user-select: none;
+    border: solid 0.5 rem;
+    border-style: solid;
+    border-radius: 3px;
+    
+    height: 23px;
+    width: 150px;
+
+}
+.tab.active {
+    background: var(--lime);
+    border-bottom: 1px solid #000000;
+}
+.tab-content {
+    display: none;
+    text-align: left;
+    font-size: larger;
+}
+.tab-content.active {
+    display: block;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.status-icon {
+  width: 200px;
+  height: 200px;
+  background: url('sunny.svg') no-repeat center;
+  background-size: contain;
+  transform-origin: center;
+}
+
+.status-icon.ready {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.status-icon.running {
+  animation: smooth-rotate-v2 1.2s infinite;
+}
+
+@keyframes smooth-rotate-v2 {
+  0% {
+    transform: rotate(0deg) scale(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  70% {
+    transform: rotate(300deg) scale(1);
+    animation-timing-function: cubic-bezier(0.1, 0.3, 0.5, 1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.form-buttons {
+    margin-top: 1rem;
+    margin-left: 0rem;
+    margin-bottom: 0;
+}
+
+.graphs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.main-graph, .convergence-graph {
+  max-width: 500px;
+  height: auto;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Добавляем стили для модального окна */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    overflow: auto;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    margin: 5% auto;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+}
+
+.modal-img {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+.close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    align-self: flex-end;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.close:hover {
+    color: #ccc;
+}
+
+/* Стили для миниатюр графиков */
+.graphs-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.graph-thumbnail {
+    max-width: 500px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.graph-thumbnail:hover {
+    transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+    .graph-thumbnail {
+    width: 100%;
+    }
+}

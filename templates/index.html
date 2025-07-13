@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Genetic Algorithm Optimizer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght,GRAD@8..144,25..151,100..1000,-200..150&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <h1>Genetic Algorithm Optimizer</h1>
+  <div class="main_container">
+    <form method="post" id="mainForm" onsubmit="return validateForm()">
+      <div class="form-columns">
+        <div class="labels-column">
+          <label for="N">Количество процессоров N:</label>
+          <label for="M">Количество задач M:</label>
+          <label for="t1">Начало диапазона:</label>
+          <label for="t2">Конец диапазона:</label>
+          <label for="PK">Вероятность оператора кроссовера:</label>
+          <label for="PM">Вероятность оператора мутации:</label>
+          <label for="K">Количество особей в поколении K:</label>
+          <label for="Z">Количество повторов лучшего решения Z:</label>
+          <label for="num_iters">Количество систем:</label>
+          <label for="elite_number">Количество элит:</label>
+        </div>
+        
+        <div class="inputs-column">
+          <input type="number" id="N" name="N" value="{{ config.N }}" min="1" required>
+          <input type="number" id="M" name="M" value="{{ config.M }}" min="1" required>
+          <input type="number" id="t1" name="t1" value="{{ config.t1 }}" min="1" required>
+          <input type="number" id="t2" name="t2" value="{{ config.t2 }}" min="1" required>
+          <input type="number" step="0.01" id="PK" name="PK" value="{{ config.PK }}" min="0" max="1" required>
+          <input type="number" step="0.01" id="PM" name="PM" value="{{ config.PM }}" min="0" max="1" required>
+          <input type="number" id="K" name="K" value="{{ config.K }}" min="1" required>
+          <input type="number" id="Z" name="Z" value="{{ config.Z }}" min="1" required>
+          <input type="number" id="num_iters" name="num_iters" value="{{ config.num_iters }}" min="1" required>
+          <input type="number" id="elite_number" name="elite_number" value="{{ config.elite_number }}" min="1" required>
+        </div>
+      </div>
+      <div class="form-buttons">
+        <div class="checkbox-container">
+        <input type="checkbox" id="use_saved" name="use_saved">
+        <label for="use_saved">Использовать сохраненные системы</label>
+        </div>
+        <button type="submit" name="mode" value="sequential" {% if running %}disabled{% endif %}>Run Sequential</button>
+        <button type="submit" name="mode" value="parallel" {% if running %}disabled{% endif %}>Run Parallel</button>
+      </div>
+    </form>
+
+    <div class="log" id="log">
+      <div class="status-container">
+        <div class="status-icon {% if running %}running{% else %}ready{% endif %}" id="statusIcon"></div>
+        <p>Статус: {% if running %}в процессе...{% else %}готов к запуску{% endif %}</p>
+      </div>
+      <p id="error-message" style="color: red; display: none;"></p>
+    </div>
+
+    <div class="results" id="resultsSection" style="display: none;">
+      <h2>Результаты</h2>
+      <div class="tabs" id="resultsTabs"></div>
+      <div id="resultsContent"></div>
+      <div id="graphContainer">
+        <!-- Графики будут вставлены сюда динамически -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для увеличенного просмотра графиков -->
+  <div id="graphModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <img id="modalImage" class="modal-img" src="" alt="Увеличенный график">
+    </div>
+  </div>
+
+<script>
+let activeTab = null;
+let currentMode = null;
+let pollingInterval = null;
+let isRunning = false; // По умолчанию false
+
+// Устанавливаем значение при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  const statusIcon = document.getElementById('statusIcon');
+  if (statusIcon) {
+    isRunning = statusIcon.classList.contains('running');
+  }
+  
+  // Инициализация модального окна
+  const modal = document.getElementById('graphModal');
+  const modalImg = document.getElementById('modalImage');
+  const span = document.getElementsByClassName('close')[0];
+  
+  // Закрытие модального окна при клике на крестик
+  span.onclick = function() {
+    modal.style.display = "none";
+  }
+  
+  // Закрытие модального окна при клике вне изображения
+  modal.onclick = function(event) {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  }
+  
+  // Закрытие модального окна при нажатии ESC
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && modal.style.display === 'block') {
+      modal.style.display = "none";
+    }
+  });
+});
+
+// Функция для открытия графика в модальном окне
+function openGraphModal(imgSrc) {
+  const modal = document.getElementById('graphModal');
+  const modalImg = document.getElementById('modalImage');
+  modalImg.src = imgSrc;
+  modal.style.display = "block";
+}
+
+function validateForm() {
+  const inputs = document.querySelectorAll('input[type="number"]');
+  const errorMessage = document.getElementById('error-message');
+  errorMessage.style.display = 'none';
+  
+  // Проверка на пустые поля
+  for (let input of inputs) {
+    if (!input.value) {
+      errorMessage.textContent = `Поле "${input.previousElementSibling.textContent.replace(':', '').trim()}" не может быть пустым!`;
+      errorMessage.style.display = 'block';
+      input.focus();
+      return false;
+    }
+  }
+  
+  // Проверка на отрицательные числа и нули (кроме PK и PM)
+  const nonProbabilityInputs = ['N', 'M', 't1', 't2', 'K', 'Z', 'num_iters', 'elite_number'];
+  for (let id of nonProbabilityInputs) {
+    const input = document.getElementById(id);
+    const value = parseFloat(input.value);
+    
+    if (value <= 0) {
+      errorMessage.textContent = `Поле "${input.previousElementSibling.textContent.replace(':', '').trim()}" должно быть положительным числом больше нуля!`;
+      errorMessage.style.display = 'block';
+      input.focus();
+      return false;
+    }
+    
+    if (value % 1 !== 0) {
+      errorMessage.textContent = `Поле "${input.previousElementSibling.textContent.replace(':', '').trim()}" должно быть целым числом!`;
+      errorMessage.style.display = 'block';
+      input.focus();
+      return false;
+    }
+  }
+  
+  // Проверка диапазона t1 и t2
+  const t1 = parseFloat(document.getElementById('t1').value);
+  const t2 = parseFloat(document.getElementById('t2').value);
+  if (t1 >= t2) {
+    errorMessage.textContent = "Конец диапазона должен быть больше начала диапазона!";
+    errorMessage.style.display = 'block';
+    document.getElementById('t2').focus();
+    return false;
+  }
+  
+  // Проверка вероятностей (PK и PM)
+  const pk = parseFloat(document.getElementById('PK').value);
+  const pm = parseFloat(document.getElementById('PM').value);
+  
+  if (pk < 0 || pk > 1) {
+    errorMessage.textContent = "Вероятность кроссовера должна быть от 0 до 1!";
+    errorMessage.style.display = 'block';
+    document.getElementById('PK').focus();
+    return false;
+  }
+  
+  if (pm < 0 || pm > 1) {
+    errorMessage.textContent = "Вероятность мутации должна быть от 0 до 1!";
+    errorMessage.style.display = 'block';
+    document.getElementById('PM').focus();
+    return false;
+  }
+  
+  // Проверка, что PK и PM имеют только одну цифру после запятой
+  if (!/^\d+(\.\d{1,2})?$/.test(document.getElementById('PK').value)) {
+    errorMessage.textContent = "Вероятность кроссовера должна быть с одной или двумя цифрами после точки (0.1, 0.15, 0.2, ..., 1.0)!";
+    errorMessage.style.display = 'block';
+    document.getElementById('PK').focus();
+    return false;
+  }
+  
+  if (!/^\d+(\.\d{1,2})?$/.test(document.getElementById('PM').value)) {
+    errorMessage.textContent = "Вероятность мутации должна быть с одной или двумя цифрами после точки (0.1, 0.15, 0.2, ..., 1.0)!";
+    errorMessage.style.display = 'block';
+    document.getElementById('PM').focus();
+    return false;
+  }
+  
+  return true;
+}
+
+function updateGraphs(mode) {
+  const graphContainer = document.getElementById('graphContainer');
+  graphContainer.innerHTML = '';
+  
+  // Создаем контейнер для графиков
+  const graphsDiv = document.createElement('div');
+  graphsDiv.className = 'graphs-container';
+  
+  // Основной график
+  const mainGraph = document.createElement('img');
+  const mainGraphSrc = `/static/${mode}_graph.png?${Date.now()}`;
+  mainGraph.src = mainGraphSrc;
+  mainGraph.alt = 'Основной график';
+  mainGraph.className = 'graph-thumbnail';
+  mainGraph.onclick = function() {
+    openGraphModal(mainGraphSrc);
+  };
+  
+  graphsDiv.appendChild(mainGraph);
+  graphContainer.appendChild(graphsDiv);
+}
+
+function startPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
+  isRunning = true;
+  pollingInterval = setInterval(pollProgress, 1000);
+}
+
+function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+  isRunning = false;
+}
+
+function pollProgress() {
+  fetch('/progress')
+    .then(res => res.json())
+    .then(data => {
+      const logDiv = document.getElementById('log');
+      
+      // Добавленный код для обновления статуса с анимацией
+      const statusContainer = document.querySelector('.status-container');
+      if (statusContainer) {
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = statusContainer.querySelector('p');
+        
+        if (statusIcon && statusText) {
+          if (data.running) {
+            statusIcon.classList.remove('ready');
+            statusIcon.classList.add('running');
+            statusText.textContent = 'Статус: в процессе загрузки...';
+          } else {
+            statusIcon.classList.remove('running');
+            statusIcon.classList.add('ready');
+            statusText.textContent = 'Статус: готов к запуску';
+            stopPolling();
+          }
+        }
+      }
+
+      // Ваш оригинальный код для обработки сообщений
+      data.messages.forEach(msg => {
+        const p = document.createElement('p');
+        p.className = msg.type;
+        p.textContent = msg.content;
+        logDiv.appendChild(p);
+      });
+
+      // Ваш оригинальный код для обновления состояния кнопок
+      document.querySelectorAll('button[type="submit"]').forEach(btn => {
+        btn.disabled = data.running;
+      });
+
+      // Ваш оригинальный код для обновления статуса (оставляем как fallback)
+      if (data.messages.length === 0 && !data.running) {
+        const statusP = document.querySelector('#log p:first-child');
+        if (statusP) {
+          statusText.textContent = 'Статус: готов к запуску';
+        }
+      }
+
+      // Ваш оригинальный код для отображения результатов
+      if (data.results && Object.keys(data.results).length > 0) {
+        updateResults(data.results);
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Определяем текущий режим (sequential или parallel)
+        if (data.results.sequential) {
+          currentMode = 'sequential';
+        } else if (data.results.parallel) {
+          currentMode = 'parallel';
+        }
+        
+        // Обновляем графики
+        if (currentMode) {
+          updateGraphs(currentMode);
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching progress:', error);
+      // Добавляем fallback для статуса при ошибке
+      const statusContainer = document.querySelector('.status-container');
+      if (statusContainer) {
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = statusContainer.querySelector('p');
+        
+        if (statusIcon && statusText) {
+          statusIcon.classList.remove('running', 'ready');
+          statusText.textContent = 'Статус: Connection Error';
+        }
+      }
+      stopPolling();
+    });
+}
+
+function updateResults(results) {
+  const tabsContainer = document.getElementById('resultsTabs');
+  const contentContainer = document.getElementById('resultsContent');
+
+  // If tabs already exist and match the current result keys, just update content
+  if (tabsContainer.children.length > 0 && tabsMatchData(results)) {
+    updateTabContents(results);
+    return;
+  }
+
+  // Otherwise rebuild tabs
+  tabsContainer.innerHTML = '';
+  contentContainer.innerHTML = '';
+
+  Object.keys(results).forEach((mode, index) => {
+    // Create tab
+    const tab = document.createElement('div');
+    tab.className = `tab ${index === 0 ? 'active' : ''}`;
+    tab.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+    tab.dataset.mode = mode;
+
+    tab.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(mode);
+    });
+
+    tabsContainer.appendChild(tab);
+
+    // Create content pane
+    const contentPane = document.createElement('div');
+    contentPane.id = `content-${mode}`;
+    contentPane.className = 'tab-content';
+    contentPane.style.display = index === 0 ? 'block' : 'none';
+
+    const pre = document.createElement('pre');
+    pre.className = 'results-content';
+    pre.textContent = results[mode];
+    contentPane.appendChild(pre);
+
+    contentContainer.appendChild(contentPane);
+
+    if (index === 0) {
+      activeTab = mode;
+    }
+  });
+}
+
+function tabsMatchData(results) {
+  const tabElements = document.querySelectorAll('.tab');
+  if (tabElements.length !== Object.keys(results).length) return false;
+
+  for (let tab of tabElements) {
+    const mode = tab.dataset.mode;
+    if (!(mode in results)) return false;
+  }
+  return true;
+}
+
+function updateTabContents(results) {
+  Object.keys(results).forEach(mode => {
+    const pre = document.querySelector(`#content-${mode} pre`);
+    if (pre) {
+      pre.textContent = results[mode];
+    }
+  });
+}
+
+function switchTab(mode) {
+  if (mode === activeTab) return;
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    if (tab.dataset.mode === mode) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.style.display = content.id === `content-${mode}` ? 'block' : 'none';
+  });
+
+  activeTab = mode;
+  
+  // Обновляем графики при переключении вкладок
+  if (mode === 'sequential' || mode === 'parallel') {
+    updateGraphs(mode);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tabsContainer = document.getElementById('resultsTabs');
+  if (tabsContainer) {
+    tabsContainer.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+  
+  // Добавляем обработчики для проверки ввода в реальном времени
+  const inputs = document.querySelectorAll('input[type="number"]');
+  inputs.forEach(input => {
+    input.addEventListener('input', function() {
+      if (this.value && parseFloat(this.value) < 0) {
+        this.value = Math.abs(parseFloat(this.value));
+      }
+    });
+  });
+
+  // Запускаем опрос только если вычисления уже идут
+  if (isRunning) {
+    startPolling();
+  }
+});
+
+// Убираем автоматический запуск интервала
+// Вместо этого интервал будет запускаться при отправке формы
+document.getElementById('mainForm').addEventListener('submit', function() {
+  startPolling();
+});
+</script>
+</body>
+</html>
