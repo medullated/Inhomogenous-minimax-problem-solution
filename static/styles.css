@@ -9,10 +9,9 @@ body {
 }
 h1 {
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 700; /* Жирность шрифта */
+    font-weight: 700;
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
 }
 
 button {
@@ -38,10 +37,9 @@ button {
     margin-left: 0.2rem;
     margin-right: 0.2rem;
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 700; /* Жирность шрифта */
+    font-weight: 700;
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
 }
 button:hover {
     scale: 1.03;
@@ -64,10 +62,9 @@ input {
     text-align: center;
     overflow-x: hidden;
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 700; /* Жирность шрифта */
+    font-weight: 700; 
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
     
     
 }
@@ -98,10 +95,9 @@ input[type=number] ::-webkit-outer-spin-button {
     flex-direction: column;
     font-family: "Roboto Mono", monospace;
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 400; /* Жирность шрифта */
+    font-weight: 400; 
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
     
 }
 .labels-column {
@@ -120,10 +116,9 @@ input[type=number] ::-webkit-outer-spin-button {
     padding: 10px; 
     overflow-y: auto; 
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 700; /* Жирность шрифта */
+    font-weight: 700; 
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
     width: 250px;
     
 }
@@ -143,10 +138,9 @@ input[type=number] ::-webkit-outer-spin-button {
 .results h2 {
     margin-top: 0;
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 700; /* Жирность шрифта */
+    font-weight: 700; 
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
 }
 .results-content {
     justify-content: center;
@@ -168,10 +162,9 @@ input[type=number] ::-webkit-outer-spin-button {
     justify-content: center;
     margin-bottom: 10px;
     font-family: "Roboto Flex", sans-serif;
-    font-weight: 700; /* Жирность шрифта */
+    font-weight: 700;
     font-variation-settings: 
-        "wdth" 151; /* Ширина шрифта (от 25 до 151) */
-    /* Другие параметры по желанию */
+        "wdth" 151; 
 }
 .tab {
     padding: 0px 20px;
@@ -271,7 +264,6 @@ input[type=number] ::-webkit-outer-spin-button {
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* Добавляем стили для модального окна */
 .modal {
     display: none;
     position: fixed;
@@ -313,7 +305,6 @@ input[type=number] ::-webkit-outer-spin-button {
     color: #ccc;
 }
 
-/* Стили для миниатюр графиков */
 .graphs-container {
     display: flex;
     flex-wrap: wrap;
