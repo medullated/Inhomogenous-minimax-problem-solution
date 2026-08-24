@@ -29,7 +29,6 @@ class Matrix():
             return T
 
         T = [[randint(self.t1, self.t2) for j in range(self.N)] for i in range(self.M)]
-        # Преобразуем в список списков, так как numpy не обязателен
         has_inf = any("inf" in row for row in T)
         while not has_inf: # генерировать бесконечности в матрицу пока не будет хотя бы 1
             T = add_inf(T, self.N)
@@ -52,12 +51,12 @@ class Organism(Matrix):
     __slots__ = ("phenotype", "genotype", "p_i", "adaptation")
     def __init__(self, *args):
         if len(args) == 1 and isinstance(args[0], Matrix):
-            # Если передан готовый объект Matrix, копируем его атрибуты
+            # если передана Matrix, копирую её атрибуты
             matrix = args[0]
             super().__init__(matrix.M, matrix.N, matrix.t1, matrix.t2)  # вызываем родительский __init__
-            self.T = matrix.T  # перезаписываем T, чтобы не генерировать заново
+            self.T = matrix.T  # перезаписываю T, чтобы не генерировать заново
         else:
-            # Иначе создаём новую Matrix стандартным способом
+            # иначе создаю новую Matrix
             M, N, t1, t2 = args
             super().__init__(M, N, t1, t2)
         
@@ -77,15 +76,15 @@ class Organism(Matrix):
         p, g = [], []
         p_indices = []
         for row in self.T:
-            # Находим индексы элементов, которые не являются "inf" (бесконечностью)
+            # индексы элементов, которые не являются бесконечностью
             indices = [i for i, x in enumerate(row) if x != "inf"]
             
-            # Случайно выбираем индекс из доступных (как минимум 1 есть по условию)
+            # случайно выбираю индекс из доступных 
             random_ind = choice(indices)
             p_indices.append(random_ind)
             p.append(row[random_ind])
             
-            # Снова выбираем случайный индекс (возможно, тот же самый)
+            # повторно выбираю случайный индекс (может быть тем же)
             random_ind = choice(indices)
             g.append(randint(*self.intervals[random_ind]))
             
@@ -99,27 +98,26 @@ class Organism(Matrix):
 
 def Sort(method: int, matrix):
     match method:
-        case 1:  # Сортировка по весу заданий по убыванию, игнорируя бесконечности
+        case 1:  #сортировка по весу заданий по убыванию, игнорируя бесконечности
             def sum_ignoring_inf(row):
                 return sum(x for x in row if x != "inf")
-            # Сортируем матрицу по убыванию суммы элементов строки (игнорируя "inf")
             sorted_matrix = sorted(matrix, key=sum_ignoring_inf, reverse=True)
             return sorted_matrix
             
-        case 2:  # Сначала строки с бесконечностями (сортированные по весу), затем остальные
+        case 2:  # первые строки с бесконечностями (сортированные по весу), затем остальные
             rows_with_inf = [row for row in matrix if "inf" in row]
             rows_without_inf = [row for row in matrix if "inf" not in row]
-            # Сортируем обе группы по убыванию суммы (игнорируя "inf")
+            # сортирую обе группы по убыванию суммы, игнорируя inf
             first = Sort(1, rows_with_inf)
             second = Sort(1, rows_without_inf)
             return first + second
             
-        case 3:  # Сортировка по количеству бесконечностей, затем по убыванию весов
+        case 3:  # сортировка по количеству бесконечностей, затем по убыванию весов
             rows_with_inf = [row for row in matrix if "inf" in row]
             rows_without_inf = [row for row in matrix if "inf" not in row]
-            # Сортируем строки с бесконечностями:
-            # 1. По количеству "inf" (по убыванию)
-            # 2. По минимальному значению в строке (по возрастанию, поэтому reverse=True)
+            # сртируб строки с бесконечностями:
+            # 1. по количеству "inf" (по убыванию)
+            # 2. по минимальному значению в строке
             def sort_key(row):
                 inf_count = row.count("inf")
                 min_val = min(x for x in row if x != "inf")
@@ -127,7 +125,6 @@ def Sort(method: int, matrix):
             
             first = sorted(rows_with_inf, key=sort_key)
             second = Sort(1, rows_without_inf)
-            
             return first + second
             
         case _:
@@ -142,28 +139,25 @@ class Plotnikov_Zverev():
         self.N, self.M = matrix.N, matrix.M
         
     def run(self):
-        load = [0] * self.N  # Инициализация нагрузки нулями
+        load = [0] * self.N  # инициализация нагрузки нулями
         path = []
-        tmp = [row.copy() for row in self.matrix]  # Копирование исходной матрицы
+        tmp = [row.copy() for row in self.matrix]  # копирование исходной матрицы
 
         for row_idx in range(self.M):
-            # Добавляем текущую нагрузку к строке матрицы
+            # добавление текущей нагрузки к строке матрицы
             current_row = []
             for i, val in enumerate(self.matrix[row_idx]):
                 if val == "inf":
-                    current_row.append("inf")  # Бесконечности оставляем без изменений
+                    current_row.append("inf")  # беск. игнорирую
                 else:
-                    current_row.append(val + load[i])  # Числа складываем с нагрузкой
+                    current_row.append(val + load[i])  # число складываю с нагрузкой
             
-            # Находим минимальный элемент (игнорируя "inf")
             min_val = float('inf')
             min_idx = -1
             for i, val in enumerate(current_row):
                 if val != "inf" and val < min_val:
                     min_val = val
                     min_idx = i
-            
-            # Обновляем нагрузку и путь (гарантированно найдётся минимум)
             load[min_idx] = min_val
             path.append((tmp[row_idx][min_idx], min_idx))
         
@@ -247,17 +241,17 @@ class Goldberg():
 
     def __mutate(self, child):
         elemind = randint(0, len(child.genotype)-1)
-        p = randint(0, 7)  # всего восемь бит
+        p = randint(0, 7)  #всего восемь бит
         tmp = child.genotype.copy()
         mutated = self.__inverting_bit(tmp[elemind], p)
         
         for i_nter in range(len(self.system.intervals)):
-            # Проверяем что значение в допустимом диапазоне и не бесконечность
+            # значение в допустимом диапазоне и не бесконечность
             if (mutated in range(*self.system.intervals[i_nter])) and child.T[elemind][i_nter] != "inf":
                 child.genotype[elemind] = mutated
-                return 1  # Успешная мутация
+                return 1  #успешная мутация
         
-        return 0  # Мутация невозможна
+        return 0  #мутация невозможна
 
     def __create_elite(self):
         tmp = Organism(self.system)
@@ -327,7 +321,6 @@ class Goldberg():
         """
 
         for gen_num, objects in sorted(self.generations.items()):
-            # Найти минимальную адаптацию в этом поколении
             best_adaptation = min(obj.adaptation for obj in objects)
             
             phenotypes = []
@@ -335,10 +328,7 @@ class Goldberg():
             adaptations = []
             
             for obj in objects:
-                # Проверяем, является ли текущая особь лучшей
                 is_best = obj.adaptation == best_adaptation
-                
-                # Формируем строки фенотипа, генотипа и адаптации
                 phenotype_str = str(obj.phenotype)
                 genotype_str = str(obj.genotype)
                 adaptation_str = str(obj.adaptation)
@@ -352,7 +342,6 @@ class Goldberg():
                 genotypes.append(genotype_str)
                 adaptations.append(adaptation_str)
             
-            # Собираем все особи поколения в одну строку таблицы
             html += f"""
                 <tr>
                     <td>{gen_num}</td>
@@ -424,7 +413,7 @@ class Goldberg():
         self.best_path = matrix
 
 
-# Генерация и сохранение матриц
+# генерация и сохранение матриц
 def generate_and_save_matrices(num_matrices, M, N, t1, t2, filename="saved_matrices.pkl"):
     if os.path.exists(filename):
         with open(filename, 'rb') as f:
@@ -435,7 +424,6 @@ def generate_and_save_matrices(num_matrices, M, N, t1, t2, filename="saved_matri
         with open(filename, 'wb') as f:
             pickle.dump(matrices, f)
         
-        # Сохраняем Matrix.T в текстовый файл для отладки
         debug_filename = "matrix_debug.txt"
         with open(debug_filename, 'w') as debug_file:
             for i, matrix in enumerate(matrices):
@@ -445,18 +433,17 @@ def generate_and_save_matrices(num_matrices, M, N, t1, t2, filename="saved_matri
         print(f"Для отладки матрицы сохранены в {debug_filename}")
     return matrices
 
-# Модифицированная функция для запуска Goldberg с указанной матрицей
+# функция для запуска голдберга с указанной матрицей
 def run_goldberg_single(task_id, Z, K, PK, PM, M, N, t1, t2, elite, elite_type, elite_number, matrix, return_path=False):
-    start_time = time.time()  # Засекаем время начала
+    start_time = time.time()
     
     g = Goldberg(Z=Z, K=K, PK=PK, PM=PM, M=M, N=N, t1=t1, t2=t2,
                 elite=elite, elite_type=elite_type, elite_number=elite_number)
     
-    # Используем переданную матрицу
     g.system = matrix
     #print(g.system)
     g.run()
-    exec_time = time.time() - start_time  # Вычисляем время выполнения
+    exec_time = time.time() - start_time 
     
     if return_path:
         return task_id, g.best_adaptation, exec_time, g.best_path
@@ -529,10 +516,9 @@ def test_parallel(num_iters, config):
             
             algorithm_real_times[name] = time.time() - start_time
 
-    # Построение графиков
     plt.figure(figsize=(12, 6))
     
-    # График средних значений приспособленности
+    #график средних значений приспособленности
     plt.subplot(1, 2, 1)
     methods = list(results.keys())
     avg_fitness = [sum(results[key]) / len(results[key]) for key in methods]
@@ -541,7 +527,7 @@ def test_parallel(num_iters, config):
     plt.ylabel('Приспособленность')
     plt.xticks(rotation=45)
     
-    # График времени выполнения
+    #график времени выполнения
     plt.subplot(1, 2, 2)
     real_times = [algorithm_real_times[key] for key in methods]
     plt.bar(methods, real_times, color='orange')
@@ -551,13 +537,12 @@ def test_parallel(num_iters, config):
     
     plt.tight_layout()
     
-    # Сохранение графиков
     formatted = time.strftime("%d.%m.%Y", time.localtime())
     plot_filename = f"static/parallel_graph.png"
     plt.savefig(plot_filename)
     plt.close()
 
-    # График сходимости по итерациям
+    # график сходимости по итерациям
     plt.figure(figsize=(10, 6))
     for name in all_iteration_results:
         plt.plot(all_iteration_results[name], label=name)
@@ -568,15 +553,11 @@ def test_parallel(num_iters, config):
     convergence_filename = f"p_convergence {formatted} elites({elite_number}) Z({Z}) K({K}) M({M}) N({N}) iterations({num_iters}).png"
     plt.savefig(convergence_filename)
     plt.close()
-
-    # Сохранение результатов в файл
     filename = f"p {formatted} elites({elite_number}) Z({Z}) K({K}) M({M}) N({N}) iterations({num_iters}).txt"
     
     with open(filename, "w", encoding="utf-8") as f:
         f.write(time.strftime("%d.%m.%Y %H:%M", time.localtime()) + "\n")
         f.write(f"{'Метод':<15} | {'Ср. приспособл.':<15} | {'Время':<15} | {'Ср. время':<15}\n")
-
-
         
         for key in results:
             avg_fitness = sum(results[key]) / len(results[key])
@@ -589,9 +570,8 @@ def test_parallel(num_iters, config):
             for name, path in best_paths.items():
                 f.write(f"{name}:\n")
                 for row in path:
-                    # Преобразуем каждое число в строку и соединяем с табуляцией
                     f.write(f"{row}\n")
-                f.write("\n")  # Добавляем пустую строку между разными путями
+                f.write("\n") 
 
         f.write("\n")
 
@@ -626,7 +606,7 @@ def test_sequential(num_iters, config):
     results = {name: [] for name in ["NoElite", "EliteType1", "EliteType2", "EliteType3"]}
     algorithm_real_times = {}
     all_iteration_results = {name: [] for name in ["NoElite", "EliteType1", "EliteType2", "EliteType3"]}
-    best_paths = {} if num_iters == 1 else None  # Добавлено для хранения лучших путей
+    best_paths = {} if num_iters == 1 else None  
 
     task_configs = [
         ("NoElite", False, None),
@@ -648,16 +628,15 @@ def test_sequential(num_iters, config):
             all_iteration_results[name].append(g.best_adaptation)
             execution_times[name].append(time.time() - start_time)
             
-            # Сохраняем лучший путь, если это единственная итерация
+            # сохраняю лучший путь если это единственная итерация
             if num_iters == 1:
                 best_paths[name] = g.best_path
         
         algorithm_real_times[name] = time.time() - start_time
 
-    # Построение графиков
     plt.figure(figsize=(12, 6))
     
-    # График средних значений приспособленности
+    # график средних значений приспособленности
     plt.subplot(1, 2, 1)
     methods = list(results.keys())
     avg_fitness = [sum(results[key]) / len(results[key]) for key in methods]
@@ -666,23 +645,20 @@ def test_sequential(num_iters, config):
     plt.ylabel('Приспособленность')
     plt.xticks(rotation=45)
     
-    # График времени выполнения
+    # график времени выполнения
     plt.subplot(1, 2, 2)
     real_times = [algorithm_real_times[key] for key in methods]
     plt.bar(methods, real_times, color='orange')
     plt.title('Время выполнения по методам')
     plt.ylabel('Время (сек)')
     plt.xticks(rotation=45)
-    
     plt.tight_layout()
-    
-    # Сохранение графиков
     formatted = time.strftime("%d.%m.%Y", time.localtime())
     plot_filename = f"static/sequential_graph.png"
     plt.savefig(plot_filename)
     plt.close()
 
-    # График сходимости по итерациям
+    #график сходимости по итерациям
     plt.figure(figsize=(10, 6))
     for name in all_iteration_results:
         plt.plot(all_iteration_results[name], label=name)
@@ -694,7 +670,6 @@ def test_sequential(num_iters, config):
     plt.savefig(convergence_filename)
     plt.close()
 
-    # Сохранение результатов в файл
     formatted = time.strftime("%d.%m.%Y", time.localtime())
     filename = f"s {formatted} elites({elite_number}) Z({Z}) K({K}) M({M}) N({N}) iterations({num_iters}).txt"
     
@@ -710,14 +685,14 @@ def test_sequential(num_iters, config):
             av_time = real_time / num_iters
             f.write(f"{key:<15} | {avg_fitness:<15.4f} | {real_time:<15.2f} | {av_time:<15.2f}\n")
         
-        # Добавлен блок записи лучших путей для num_iters == 1
+       
         if num_iters == 1 and best_paths:
             f.write("\nЛУЧШИЕ РАСПРЕДЕЛЕНИЯ:\n")
             for name, path in best_paths.items():
                 f.write(f"{name}:\n")
                 for row in path:
                     f.write(f"{row}\n")
-                f.write("\n")  # Добавляем пустую строку между разными путями
+                f.write("\n") 
 
         f.write("\n")
 
