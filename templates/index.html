@@ -63,12 +63,10 @@
       <div class="tabs" id="resultsTabs"></div>
       <div id="resultsContent"></div>
       <div id="graphContainer">
-        <!-- Графики будут вставлены сюда динамически -->
       </div>
     </div>
   </div>
 
-  <!-- Модальное окно для увеличенного просмотра графиков -->
   <div id="graphModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -80,33 +78,28 @@
 let activeTab = null;
 let currentMode = null;
 let pollingInterval = null;
-let isRunning = false; // По умолчанию false
+let isRunning = false; 
 
-// Устанавливаем значение при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
   const statusIcon = document.getElementById('statusIcon');
   if (statusIcon) {
     isRunning = statusIcon.classList.contains('running');
   }
   
-  // Инициализация модального окна
   const modal = document.getElementById('graphModal');
   const modalImg = document.getElementById('modalImage');
   const span = document.getElementsByClassName('close')[0];
   
-  // Закрытие модального окна при клике на крестик
   span.onclick = function() {
     modal.style.display = "none";
   }
   
-  // Закрытие модального окна при клике вне изображения
   modal.onclick = function(event) {
     if (event.target === modal) {
       modal.style.display = "none";
     }
   }
   
-  // Закрытие модального окна при нажатии ESC
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' && modal.style.display === 'block') {
       modal.style.display = "none";
@@ -114,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Функция для открытия графика в модальном окне
 function openGraphModal(imgSrc) {
   const modal = document.getElementById('graphModal');
   const modalImg = document.getElementById('modalImage');
@@ -127,7 +119,6 @@ function validateForm() {
   const errorMessage = document.getElementById('error-message');
   errorMessage.style.display = 'none';
   
-  // Проверка на пустые поля
   for (let input of inputs) {
     if (!input.value) {
       errorMessage.textContent = `Поле "${input.previousElementSibling.textContent.replace(':', '').trim()}" не может быть пустым!`;
@@ -137,7 +128,6 @@ function validateForm() {
     }
   }
   
-  // Проверка на отрицательные числа и нули (кроме PK и PM)
   const nonProbabilityInputs = ['N', 'M', 't1', 't2', 'K', 'Z', 'num_iters', 'elite_number'];
   for (let id of nonProbabilityInputs) {
     const input = document.getElementById(id);
@@ -158,7 +148,6 @@ function validateForm() {
     }
   }
   
-  // Проверка диапазона t1 и t2
   const t1 = parseFloat(document.getElementById('t1').value);
   const t2 = parseFloat(document.getElementById('t2').value);
   if (t1 >= t2) {
@@ -168,7 +157,6 @@ function validateForm() {
     return false;
   }
   
-  // Проверка вероятностей (PK и PM)
   const pk = parseFloat(document.getElementById('PK').value);
   const pm = parseFloat(document.getElementById('PM').value);
   
@@ -186,7 +174,6 @@ function validateForm() {
     return false;
   }
   
-  // Проверка, что PK и PM имеют только одну цифру после запятой
   if (!/^\d+(\.\d{1,2})?$/.test(document.getElementById('PK').value)) {
     errorMessage.textContent = "Вероятность кроссовера должна быть с одной или двумя цифрами после точки (0.1, 0.15, 0.2, ..., 1.0)!";
     errorMessage.style.display = 'block';
@@ -208,11 +195,9 @@ function updateGraphs(mode) {
   const graphContainer = document.getElementById('graphContainer');
   graphContainer.innerHTML = '';
   
-  // Создаем контейнер для графиков
   const graphsDiv = document.createElement('div');
   graphsDiv.className = 'graphs-container';
   
-  // Основной график
   const mainGraph = document.createElement('img');
   const mainGraphSrc = `/static/${mode}_graph.png?${Date.now()}`;
   mainGraph.src = mainGraphSrc;
@@ -248,7 +233,6 @@ function pollProgress() {
     .then(data => {
       const logDiv = document.getElementById('log');
       
-      // Добавленный код для обновления статуса с анимацией
       const statusContainer = document.querySelector('.status-container');
       if (statusContainer) {
         const statusIcon = document.getElementById('statusIcon');
@@ -268,7 +252,6 @@ function pollProgress() {
         }
       }
 
-      // Ваш оригинальный код для обработки сообщений
       data.messages.forEach(msg => {
         const p = document.createElement('p');
         p.className = msg.type;
@@ -276,12 +259,10 @@ function pollProgress() {
         logDiv.appendChild(p);
       });
 
-      // Ваш оригинальный код для обновления состояния кнопок
       document.querySelectorAll('button[type="submit"]').forEach(btn => {
         btn.disabled = data.running;
       });
 
-      // Ваш оригинальный код для обновления статуса (оставляем как fallback)
       if (data.messages.length === 0 && !data.running) {
         const statusP = document.querySelector('#log p:first-child');
         if (statusP) {
@@ -289,19 +270,16 @@ function pollProgress() {
         }
       }
 
-      // Ваш оригинальный код для отображения результатов
       if (data.results && Object.keys(data.results).length > 0) {
         updateResults(data.results);
         document.getElementById('resultsSection').style.display = 'block';
         
-        // Определяем текущий режим (sequential или parallel)
         if (data.results.sequential) {
           currentMode = 'sequential';
         } else if (data.results.parallel) {
           currentMode = 'parallel';
         }
         
-        // Обновляем графики
         if (currentMode) {
           updateGraphs(currentMode);
         }
@@ -309,7 +287,6 @@ function pollProgress() {
     })
     .catch(error => {
       console.error('Error fetching progress:', error);
-      // Добавляем fallback для статуса при ошибке
       const statusContainer = document.querySelector('.status-container');
       if (statusContainer) {
         const statusIcon = document.getElementById('statusIcon');
@@ -328,18 +305,15 @@ function updateResults(results) {
   const tabsContainer = document.getElementById('resultsTabs');
   const contentContainer = document.getElementById('resultsContent');
 
-  // If tabs already exist and match the current result keys, just update content
   if (tabsContainer.children.length > 0 && tabsMatchData(results)) {
     updateTabContents(results);
     return;
   }
 
-  // Otherwise rebuild tabs
   tabsContainer.innerHTML = '';
   contentContainer.innerHTML = '';
 
   Object.keys(results).forEach((mode, index) => {
-    // Create tab
     const tab = document.createElement('div');
     tab.className = `tab ${index === 0 ? 'active' : ''}`;
     tab.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
@@ -353,7 +327,6 @@ function updateResults(results) {
 
     tabsContainer.appendChild(tab);
 
-    // Create content pane
     const contentPane = document.createElement('div');
     contentPane.id = `content-${mode}`;
     contentPane.className = 'tab-content';
@@ -409,7 +382,6 @@ function switchTab(mode) {
 
   activeTab = mode;
   
-  // Обновляем графики при переключении вкладок
   if (mode === 'sequential' || mode === 'parallel') {
     updateGraphs(mode);
   }
@@ -423,8 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
     });
   }
-  
-  // Добавляем обработчики для проверки ввода в реальном времени
+
   const inputs = document.querySelectorAll('input[type="number"]');
   inputs.forEach(input => {
     input.addEventListener('input', function() {
@@ -434,14 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Запускаем опрос только если вычисления уже идут
   if (isRunning) {
     startPolling();
   }
 });
 
-// Убираем автоматический запуск интервала
-// Вместо этого интервал будет запускаться при отправке формы
 document.getElementById('mainForm').addEventListener('submit', function() {
   startPolling();
 });
